@@ -1,0 +1,1 @@
+apigeetool deploynodeapp -n BANAMEX_ATM_WEB -d . -m banamexatmsweb.js -o sujoyghosal -e test -b /banamexatmsweb -u gsujoy@yahoo.com -p Kolkata41

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		table,
+		td,
+		th {
+			border: 1px solid #ddd;
+			text-align: left;
+		}
+		
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+		
+		th,
+		td {
+			padding: 15px;
+		}
+		
+		p {
+			font-size: 20px;
+			font-family: calibri;
+			font-variant-caps: true;
+			color: black;
+		}
+		
+		.button {
+			background-color: #5BB200;
+			/* Green */
+			border: none;
+			color: white;
+			padding: 15px 32px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			margin: 4px 2px;
+			cursor: pointer;
+		}
+		
+		.button1 {
+			font-size: 10px;
+			font-family: verdana;
+		}
+		
+		.button2 {
+			font-size: 14px;
+			font-family: verdana;
+		}
+		
+		.button3 {
+			font-size: 16px;
+			font-family: verdana;
+		}
+		
+		.button4 {
+			font-size: 20px;
+			font-family: verdana;
+		}
+		
+		.button5 {
+			font-size: 24px;
+			font-family: verdana;
+		}
+		
+		input[type=text] {
+			width: 20%;
+			padding: 12px 20px;
+			margin: 8px 0;
+			box-sizing: border-box;
+			border: 2px solid red;
+			border-radius: 4px;
+			background-color: #f1f1f1;
+			font-size: 14px;
+			font-family: verdana;
+		}
+		
+		select {
+			width: 14%;
+			padding: 12px 20px;
+			border: 2px solid red;
+			box-sizing: border-box;
+			border-radius: 4px;
+			background-color: #f1f1f1;
+			font-size: 14px;
+			font-family: verdana;
+		}
+		
+		a:link,
+		a:visited {
+			background-color: #82FF00;
+			color: black;
+			padding: 14px 25px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+		}
+		
+		a:hover,
+		a:active {
+			background-color: red;
+		}
+	</style>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+
+<body bgcolor="#ffffff" text="#0000ff" style="font-family:verdana">
+	<div ng-app="myApp" ng-controller="myCtrl">
+		<h1>BANAMEX ATMS NEAR AN ADDRESS</h1>
+		Within Distance:
+		<select ng-model="radius" ng-init="radius = 100" ng-change="GetATMS()">
+    <option value="100" ng-selected="true">100m
+    <option value="500">500m
+    <option value="1000">1Km
+    <option value="2000">2Km
+    <option value="3000">3Km
+    <option value="4000">4Km
+    <option value="5000">5Km
+    <option value="6000">6Km
+</select> Of Address <input type="text" ng-model="address">
+		<button class="button button2" ng-click="GetATMS()">GET BANAMEX ATMS NEARBY</button>
+		<p ng-show=geocodesuccess>GeoCoded Address Lat/Lng: {{geoCodeResponse.results[0].geometry.location}}</p>
+		<h2 ng-show=nearbyatmssuccess>{{'NearBy ATMs Within ' + radius + 'm Of ' + address }}</h2>
+		<br>
+		<table id="atmstable" ng-show="nearbyatmssuccess" id="searchTextResults">
+			<thead>
+				<tr>
+					<!--<th>Closest</th> -->
+					<th>Name</th>
+					<th>Distance (km)</th>
+					<th>Ratings</th>
+					<!--	<th>Vicinity</th> -->
+					<th>Show Details</th>
+				</tr>
+			</thead>
+			<tr ng-repeat="atm in NearbyATMs">
+			<!--	<td>{{$index + 1}}</td> -->
+				<td>{{atm.name + ' near ' + atm.vicinity}}</td>
+				<td>{{atm.distance}}
+				<td>{{atm.rating}}</td>
+					<!--		<td>{{atm.vicinity}}</td> -->
+				<td><button ng-show="!showDetails || currentPlaceID!=atm.place_id " class="button button2" ng-click="GetATMDetails(atm.place_id)">Details</button>
+						<p ng-show="showDetails  && currentPlaceID==atm.place_id">
+							{{detailedInfo.name}} <br> {{detailedInfo.address}} <br>Open Now: {{detailedInfo.opening_hours.open_now}}
+							<br>Phone: {{detailedInfo.phone}}<br>Weekdays: {{detailedInfo.opening_hours.weekday_text}}</p>
+						<img ng-show="showDetails && currentPlaceID==atm.place_id" ng-src="{{imgURL}}" /><br>
+						<a ng-show="showDetails && currentPlaceID==atm.place_id" id="link-6" ng-href="https://maps.google.com?saddr=Current+Location&daddr={{detailedInfo.address}}"
+										target="_blank">
+							<img height="40" width="50" ng-src="http://smallworldmontessori.co.uk/img/directions-sign.jpg" /><br></a>
+					</td>
+					<!--<td><a id="link-6" ng-href="{{atm.PhotoURL}}" target="_blank"> See in Map</a></td>-->
+			</tr>
+		</table>
+	</div>
+	<script>
+		var app = angular.module('myApp', []);
+		app.controller('myCtrl', function ($scope, $http) {
+			$scope.address = "Santa Fe, Mexico City, Mexico";
+			$scope.geocodesuccess = false;
+			$scope.nearbyatmssuccess = false;
+			$scope.showDetails = false;
+			$scope.GetATMS = function () {
+				//  alert($scope.address);
+				$http({
+					method: "GET",
+					url: "https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyAJBIQdfnhuEcSi6qFDoXCszJpRZxlSFZ0&address=" +
+						$scope.address
+				}).then(function mySucces(response) {
+					$scope.geoCodeResponse = response.data;
+					$scope.geocodesuccess = true;
+
+					$scope.GetNearByATMs($scope.geoCodeResponse.results[0].geometry.location);
+
+				}, function myError(response) {
+					$scope.geoCodeResponse = response.statusText;
+				});
+			}
+			$scope.GetNearByATMs = function (location) {
+				//  alert($scope.radius);
+				$http({
+					method: "GET",
+					url: "http://sujoyghosal-test.apigee.net/banamexatms/nearby?radius=" + $scope.radius + "&latitude=" +
+						location.lat + "&longitude=" + location.lng
+				}).then(function mySucces(response) {
+					$scope.nearbyatmssuccess = true;
+					$scope.NearbyATMs = response.data;
+					console.log("Response=" + JSON.stringify(response.data));
+				}, function myError(response) {
+					alert("Error " + response);
+					$scope.NearbyATMs = response.statusText;
+				});
+			}
+			$scope.GetATMDetails = function (placeID) {
+				$scope.imgURL = '';
+				$scope.currentPlaceID = placeID;
+				$http({
+					method: "GET",
+					url: "http://sujoyghosal-test.apigee.net/banamexatms/placedetails?placeid=" + placeID
+				}).then(function mySucces(response) {
+					$scope.showDetails = true;
+					$scope.nearbyatmssuccess = true;
+					$scope.detailedInfo = response.data;
+					
+					$scope.imgURL = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=100&photoreference=" +
+						$scope.detailedInfo.photo[0].photo_reference + "&key=AIzaSyAJBIQdfnhuEcSi6qFDoXCszJpRZxlSFZ0";
+					console.log("Response=" + JSON.stringify(response.data));
+					console.log("Distance = " + distance);
+				}, function myError(response) {
+					alert("Error " + response);
+					$scope.detailedInfo = response.statusText;
+				});
+			}
+
+		});
+	</script>
+</body>
+
+</html>

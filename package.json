@@ -1,0 +1,11 @@
+{
+  "name": "BANAMEX_ATM_FINDER",
+  "version": "1.0.0",
+  "description": "Banamex ATM Locations Web",
+  "author": "Sujoy Ghosal <gsujoy@yahoo.com>",
+  "main": "banamexatmsweb.js",
+  "dependencies": {
+    "express": "^4.13.3",
+    "path": "*"
+  }
+}
